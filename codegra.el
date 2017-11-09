@@ -70,17 +70,25 @@
 (define-derived-mode codegrade-feedback-mode text-mode "CodeGrade Feedback"
   "Major mode for CodeGrade feedback"
   :group 'codegrade
+  (visual-line-mode 1)
   (when (bound-and-true-p global-linum-mode)
     (linum-mode -1))
   (when (and (fboundp 'nlinum-mode)
              (bound-and-true-p global-nlinum-mode))
     (nlinum-mode -1)))
 
-(lexical-let ((bindings '(("C-c C-c" normal codegrade-feedback-close))))
-  (defvar codegrade-feedback-mode-map
-    (let ((map (make-sparse-keymap)))
-      (dolist (bind bindings)
-        (define-key map (kbd (car bind)) (caddr bind))))))
+(defvar codegrade-feedback-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control c) (control c)]            'codegrade-feedback-close)
+    (define-key map [remap server-edit]                  'codegrade-feedback-close)
+    (define-key map [remap evil-save-and-close]          'codegrade-feedback-close)
+    (define-key map [remap evil-save-modified-and-close] 'codegrade-feedback-close)
+    (define-key map [(control c) (control k)]            'codegrade-feedback-quit)
+    (define-key map [remap kill-buffer]                  'codegrade-feedback-quit)
+    (define-key map [remap ido-kill-buffer]              'codegrade-feedback-quit)
+    (define-key map [remap iswitchb-kill-buffer]         'codegrade-feedback-quit)
+    (define-key map [remap evil-quit]                    'codegrade-feedback-quit)
+    map))
 
 (defvar codegrade-rubric-buffer nil
   "The rubric buffer that is open at the moment or NIL.")
@@ -131,17 +139,23 @@
                                          (kill-buffer (current-buffer))))))))
          nil))))
 
-(defun codegrade-find-rubric-file (file)
+(defun codegrade-find-special-file (current-file wanted-file-name)
   (block 'func
     (let* ((total-path ""))
-      (assert file)
-      (dolist (part (split-string file "/"))
+      (assert current-file)
+      (dolist (part (split-string current-file "/"))
         (unless (string= part "")
           (setq total-path (format "%s/%s" total-path part))
           (when (and (file-directory-p total-path)
-                     (file-exists-p (format "%s/.cg-submission-id" total-path))
-                     (file-exists-p (format "%s/.cg-rubric.md" total-path)))
-            (return-from 'func (format "%s/.cg-rubric.md" total-path))))))))
+                     (file-exists-p (format "%s/%s" total-path wanted-file-name)))
+            (return-from 'func
+              (format "%s/%s" total-path wanted-file-name))))))))
+
+(defun codegrade-find-rubric-file (file)
+  (codegrade-find-special-file file ".cg-rubric.md"))
+
+(defun codegrade-find-grade-file (file)
+  (codegrade-find-special-file file ".cg-grade"))
 
 ;;; End helper functions
 
@@ -155,6 +169,13 @@
       (setq codegrade-rubric-previous-window-conf nil)))
   (setq codegrade-rubric-file nil)
   (setq codegrade-rubric-buffer nil))
+
+(defun codegrade-feedback-quit ()
+  (interactive)
+  (assert (eql major-mode 'codegrade-feedback-mode))
+  (kill-buffer (current-buffer))
+  (set-window-configuration codegrade--feedback-previous-window-conf)
+  (message "Feedback quited!"))
 
 (defun codegrade-feedback-close ()
   (interactive)
@@ -254,13 +275,17 @@
       (with-current-buffer buf
         (add-hook 'kill-buffer-hook
                   (lambda ()
-                    (codegrade-rubric-close 'not-kill)))
+                    (interactive)
+                    (codegrade-rubric-close 'not-kill))
+                  'not-append
+                  'local)
         (let ((f (codegrade-find-rubric-file old-file)))
           (if f
               (progn
                 (insert-file-contents f nil nil nil 'replace)
                 (setq codegrade-rubric-file f))
             (message "Rubric not found, leaving buffer empty!")))
+        (message "Setting buf to %S" buf)
         (setq codegrade-rubric-buffer buf)
         (codegrade-rubric-mode)
         (setq codegrade-rubric-previous-window-conf (current-window-configuration))
@@ -283,7 +308,8 @@
           (setq codegrade-rubric-file f)
           (with-current-buffer codegrade-rubric-buffer
             (let ((buffer-read-only nil))
-              (insert-file-contents codegrade-rubric-file nil nil nil 'replace))))))))
+              (insert-file-contents codegrade-rubric-file nil nil nil 'replace)
+              (goto-char (point-min)))))))))
 
 (add-hook 'switch-buffer-functions #'codegrade-rubric-hook)
 
@@ -309,7 +335,7 @@
            (setq-local codegrade--feedback-filename name)
            (setq-local codegrade--feedback-previous-window-conf old-conf)
            (setq-local codegrade--feedback-line line)
-           (message "Type your feedback here %s" old-conf)))))))
+           (message "Type your feedback here")))))))
 
 (defun codegrade--get-json-feedback (cont)
   "Get feedback for the current file on the current line."
@@ -323,13 +349,29 @@
       (let ((json (json-read)))
         (funcall cont json)))))
 
+(defun codegrade-give-grade (grade)
+  (interactive "nGrade: ")
+  (when (or (< grade 0) (> grade 10))
+    (error "Grade should be between 0 and 10")))
+
+(defun codegrade-delete-feedback ()
+  "Delete the feedback for the current file on the current line."
+  (interactive)
+  (lexical-let ((line (1+ (count-lines (point-min) (point)))))
+    (codegrade-with-process "codegrade-api-consumer"
+        ("cgapi-api-consumer"
+         "delete-comment"
+         (buffer-file-name)
+         (int-to-string line))
+      (lambda (proc)
+        (message "Feedback deleted!")))))
+
 (defun codegrade-get-feedback ()
   "Get feedback for the current file on the current line."
   (interactive)
   (lexical-let ((line (1+ (count-lines (point-min) (point)))))
     (codegrade--get-json-feedback
      (lambda (json)
-       (message "%S" line)
        (message "%S" (cl-find-if (lambda (el)
                                    (= (cdr (assoc 'line el))
                                       line))
