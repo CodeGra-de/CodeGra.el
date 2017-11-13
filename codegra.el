@@ -112,10 +112,11 @@
 ;;; Helper functions
 
 (defun codegrade-handle-api-errors (proc)
+  "Handle all errors from a codegrade api consumer process PROC."
   (case (process-exit-status proc)
     (0 nil)
     (3 (error "Socket file not found, are you in codegra.fs?"))
-    (otherwise (error "error (%s): %S"
+    (otherwise (error "Error (%s): %S"
                       (process-exit-status proc)
                       (buffer-substring-no-properties (point-min) (point-max))))))
 
@@ -140,6 +141,11 @@
          nil))))
 
 (defun codegrade-find-special-file (current-file wanted-file-name)
+  "Find a special file in the codegra.fs filesystem.
+
+Starting from root to the containing directory of CURRENT-FILE a file
+named WANTED-FILE-NAME is searched.  It will return its containing
+directory if found, otherwise NIL."
   (block 'func
     (let* ((total-path ""))
       (assert current-file)
@@ -152,15 +158,44 @@
               (format "%s/%s" total-path wanted-file-name))))))))
 
 (defun codegrade-find-rubric-file (file)
+  "Search for the rubric file bellowing to FILE.
+
+See CODEGRADE-FIND-SPECIAL for how this is done."
   (codegrade-find-special-file file ".cg-rubric.md"))
 
 (defun codegrade-find-grade-file (file)
+  "Search for the grade file bellowing to FILE.
+
+See CODEGRADE-FIND-SPECIAL for how this is done."
   (codegrade-find-special-file file ".cg-grade"))
+
+(defun codegrade--get-json-feedback (cont)
+  "Get feedback for the current file on the current line.
+
+The continuation CONT is called with the parsed json as the feedback
+  on the current line."
+  (codegrade-with-process "codegrade-api-consumer"
+      ("cgapi-api-consumer"
+       "get-comment"
+       (buffer-file-name))
+    (lambda (proc)
+      (goto-char (point-min))
+      (codegrade-handle-api-errors proc)
+      (let ((json (json-read)))
+        (funcall cont json)))))
+
+(defun codegrade-ensure-mode (mode)
+  "Ensure that the current major mode is MODE."
+  (unless (eql major-mode mode)
+    (error "The current mode is not %s as required for this command" mode)))
 
 ;;; End helper functions
 
 (defun codegrade-rubric-close (&optional not-kill)
-  "Close the current rubric buffer"
+  "Close the current rubric buffer.
+
+If NOT-KILL is non nil the current CODEGRADE-RUBRIC-BUFFER is not
+  killed but only some cleanup is done.  Otherwise it is killed."
   (interactive)
   (unless not-kill
     (kill-buffer codegrade-rubric-buffer)
@@ -171,15 +206,21 @@
   (setq codegrade-rubric-buffer nil))
 
 (defun codegrade-feedback-quit ()
+  "Stop giving feedback.
+
+This does not save the currently typed in feedback."
   (interactive)
-  (assert (eql major-mode 'codegrade-feedback-mode))
+  (codegrade-ensure-mode 'codegrade-feedback-mode)
+
   (kill-buffer (current-buffer))
   (set-window-configuration codegrade--feedback-previous-window-conf)
   (message "Feedback quited!"))
 
 (defun codegrade-feedback-close ()
+  "Close the current feedback buffer and send its content as feedback."
   (interactive)
-  (assert (eql major-mode 'codegrade-feedback-mode))
+  (codegrade-ensure-mode 'codegrade-feedback-mode)
+
   (lexical-let ((buf (current-buffer)))
     (whitespace-cleanup-region (point-min) (point-max))
     (codegrade-with-process "codegrade-api-consumer"
@@ -197,6 +238,7 @@
           (message "Feedback added!"))))))
 
 (defun codegrade-goto-next-header ()
+  "Goto the next rubric header."
   (interactive)
   (let ((pt (point)))
     (forward-line 1)
@@ -205,23 +247,30 @@
                (beginning-of-line))
       (error
        (goto-char pt)
-       (error "No next item found, you are on the last item.")))))
+       (error "No next item found, you are on the last item")))))
 
 (defun codegrade-goto-prev-header ()
+  "Goto the previous rubric header."
   (interactive)
   (condition-case nil
       (progn (search-backward-regexp "## ")
              (beginning-of-line))
-    (error (error "No previous item found, you are on the first item."))))
+    (error (error "No previous item found, you are on the first item"))))
 
 (defun codegrade-goto-prev-item ()
+  "Goto the previous rubric item.
+
+A rubric items is header or a list item."
   (interactive)
   (condition-case nil
       (progn (search-backward-regexp "^\\(## \\|- \\[.\\] \\)")
              (beginning-of-line))
-    (error (error "No previous item found, you are on the first item."))))
+    (error (error "No previous item found, you are on the first item"))))
 
 (defun codegrade-goto-next-item ()
+  "Goto the next rubric item.
+
+A rubric items is header or a list item."
   (interactive)
   (let ((pt (point)))
     (forward-line 1)
@@ -230,15 +279,23 @@
                (beginning-of-line))
       (error
        (goto-char pt)
-       (error "No next item found, you are on the last item.")))))
+       (error "No next item found, you are on the last item")))))
 
 (defun codegrade-toggle-rubric-item ()
+  "Toggle the rubric list item at the current point.
+
+This looks back to find the first line starting with \"- []\" or \"-
+[x]\".  If it finds a description seperator line or a rubric header
+before that it will error."
   (interactive)
+  (codegrade-ensure-mode 'codegrade-rubric-mode)
+  
   (let ((buffer-read-only nil))
     (unless (equal (current-buffer) codegrade-rubric-buffer)
       (error "This command only works in the codegrade rubric buffer!"))
     (unless codegrade-rubric-file
       (error "No codegrade rubric file is open!"))
+
     (save-excursion
       (beginning-of-line)
       (while (and (not (or (looking-at "^- \\[.\\] ")
@@ -265,8 +322,14 @@
     (insert-file-contents codegrade-rubric-file nil nil nil 'replace)
     (set-buffer-modified-p nil)))
 
+;;;###autoload
 (defun codegrade-open-rubric ()
-  "Open a rubric buffer"
+  "Open or switch to the codegrade rubric buffer.
+
+The rubric for the current buffer will be loaded in this codegrade
+rubric buffer and using this buffer you can fill the rubric in.  This
+buffer will automatically change the rubric for the currently focused
+file."
   (interactive)
   (if codegrade-rubric-buffer
       (switch-to-buffer-other-window codegrade-rubric-buffer)
@@ -292,6 +355,10 @@
         (switch-to-buffer-other-window buf)))))
 
 (defun codegrade-rubric-hook (_ cur)
+  "The rubric hook that is run everytime a buffer is changed.
+
+It checks if there is a rubric buffer open and if it is it will update
+its contents if the newly focused file (which is CUR) is a codegrade fill."
   (ignore-errors
     (when (and codegrade-rubric-buffer
                (not (eql major-mode 'codegrade-rubric-mode))
@@ -313,6 +380,7 @@
 
 (add-hook 'switch-buffer-functions #'codegrade-rubric-hook)
 
+;;;###autoload
 (defun codegrade-add-feedback ()
   "Add feedback for the current file on the current line."
   (interactive)
@@ -337,23 +405,19 @@
            (setq-local codegrade--feedback-line line)
            (message "Type your feedback here")))))))
 
-(defun codegrade--get-json-feedback (cont)
-  "Get feedback for the current file on the current line."
-  (codegrade-with-process "codegrade-api-consumer"
-      ("cgapi-api-consumer"
-       "get-comment"
-       (buffer-file-name))
-    (lambda (proc)
-      (goto-char (point-min))
-      (codegrade-handle-api-errors proc)
-      (let ((json (json-read)))
-        (funcall cont json)))))
-
+;;;###autoload
 (defun codegrade-give-grade (grade)
+  "Give the current submission the grade GRADE."
   (interactive "nGrade: ")
   (when (or (< grade 0) (> grade 10))
-    (error "Grade should be between 0 and 10")))
+    (error "Grade should be between 0 and 10"))
+  (let ((current (buffer-file-name)))
+    (with-temp-buffer
+      (insert (format "%s" grade))
+      (write-region nil nil (codegrade-find-grade-file current))
+      (message "Grade given!"))))
 
+;;;###autoload
 (defun codegrade-delete-feedback ()
   "Delete the feedback for the current file on the current line."
   (interactive)
@@ -366,8 +430,11 @@
       (lambda (proc)
         (message "Feedback deleted!")))))
 
+;;;###autoload
 (defun codegrade-get-feedback ()
-  "Get feedback for the current file on the current line."
+  "Get feedback for the current file on the current line.
+
+This feedback is messaged back to the user."
   (interactive)
   (lexical-let ((line (1+ (count-lines (point-min) (point)))))
     (codegrade--get-json-feedback
