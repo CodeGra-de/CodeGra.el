@@ -79,15 +79,15 @@
 
 (defvar codegrade-feedback-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control c) (control c)]            'codegrade-feedback-close)
-    (define-key map [remap server-edit]                  'codegrade-feedback-close)
-    (define-key map [remap evil-save-and-close]          'codegrade-feedback-close)
+    (define-key map (kbd "C-c C-c") 'codegrade-feedback-close)
+    (define-key map [remap server-edit] 'codegrade-feedback-close)
+    (define-key map [remap evil-save-and-close] 'codegrade-feedback-close)
     (define-key map [remap evil-save-modified-and-close] 'codegrade-feedback-close)
-    (define-key map [(control c) (control k)]            'codegrade-feedback-quit)
-    (define-key map [remap kill-buffer]                  'codegrade-feedback-quit)
-    (define-key map [remap ido-kill-buffer]              'codegrade-feedback-quit)
-    (define-key map [remap iswitchb-kill-buffer]         'codegrade-feedback-quit)
-    (define-key map [remap evil-quit]                    'codegrade-feedback-quit)
+    (define-key map (kbd "C-c C-k") 'codegrade-feedback-quit)
+    (define-key map [remap kill-buffer] 'codegrade-feedback-quit)
+    (define-key map [remap ido-kill-buffer] 'codegrade-feedback-quit)
+    (define-key map [remap iswitchb-kill-buffer] 'codegrade-feedback-quit)
+    (define-key map [remap evil-quit] 'codegrade-feedback-quit)
     map))
 
 (defvar codegrade-rubric-buffer nil
@@ -175,7 +175,7 @@ See CODEGRADE-FIND-SPECIAL for how this is done."
 The continuation CONT is called with the parsed json as the feedback
   on the current line."
   (codegrade-with-process "codegrade-api-consumer"
-      ("cgapi-api-consumer"
+      ("cgapi-consumer"
        "get-comment"
        (buffer-file-name))
     (lambda (proc)
@@ -224,7 +224,7 @@ This does not save the currently typed in feedback."
   (lexical-let ((buf (current-buffer)))
     (whitespace-cleanup-region (point-min) (point-max))
     (codegrade-with-process "codegrade-api-consumer"
-        ("cgapi-api-consumer"
+        ("cgapi-consumer"
          "set-comment"
          codegrade--feedback-filename
          (int-to-string codegrade--feedback-line)
@@ -423,7 +423,7 @@ its contents if the newly focused file (which is CUR) is a codegrade fill."
   (interactive)
   (lexical-let ((line (1+ (count-lines (point-min) (point)))))
     (codegrade-with-process "codegrade-api-consumer"
-        ("cgapi-api-consumer"
+        ("cgapi-consumer"
          "delete-comment"
          (buffer-file-name)
          (int-to-string line))
