@@ -34,6 +34,7 @@
   :group 'codegrade
   (setq truncate-lines t)
   (setq buffer-read-only t)
+  (visual-line-mode 1)
   (setq-local line-move-visual t) ; see #1771
   (setq show-trailing-whitespace nil)
   (setq list-buffers-directory (abbreviate-file-name default-directory))
@@ -384,7 +385,7 @@ its contents if the newly focused file (which is CUR) is a codegrade fill."
 (defun codegrade-add-feedback ()
   "Add feedback for the current file on the current line."
   (interactive)
-  (lexical-let ((line (1+(count-lines 1 (point))))
+  (lexical-let ((line (line-number-at-pos))
                 (name (buffer-file-name)))
     (codegrade--get-json-feedback
      (lambda (json)
@@ -421,13 +422,15 @@ its contents if the newly focused file (which is CUR) is a codegrade fill."
 (defun codegrade-delete-feedback ()
   "Delete the feedback for the current file on the current line."
   (interactive)
-  (lexical-let ((line (1+ (count-lines (point-min) (point)))))
+  (lexical-let ((line (line-number-at-pos)))
     (codegrade-with-process "codegrade-api-consumer"
         ("cgapi-consumer"
          "delete-comment"
          (buffer-file-name)
          (int-to-string line))
       (lambda (proc)
+        (codegrade-handle-api-errors proc)
+
         (message "Feedback deleted!")))))
 
 ;;;###autoload
@@ -436,7 +439,7 @@ its contents if the newly focused file (which is CUR) is a codegrade fill."
 
 This feedback is messaged back to the user."
   (interactive)
-  (lexical-let ((line (1+ (count-lines (point-min) (point)))))
+  (lexical-let ((line (line-number-at-pos)))
     (codegrade--get-json-feedback
      (lambda (json)
        (message "%S" (cl-find-if (lambda (el)
