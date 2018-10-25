@@ -15,7 +15,7 @@ also known as *CodeGra.el*.
 
 .. toctree::
     :maxdepth: 2
-    :caption: CodeGrade Filesystem
+    :caption: CodeGrade Emacs Plugin
 
     install
     usage
