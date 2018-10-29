@@ -22,4 +22,4 @@ script:
   - travis-sphinx build --source=docs/
 
 after_success:
-  - travis-sphinx deploy -c docs-emacs.codegra.de
+  - travis-sphinx deploy -c emacs-docs.codegra.de
