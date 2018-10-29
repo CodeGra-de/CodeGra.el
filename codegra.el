@@ -1,9 +1,9 @@
 ;;; codegra.el --- Give and read feedback on CodeGra.de -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Thomas Schaper and contributors
+;; Copyright (C) 2018 Thomas Schaper and contributors
 ;;
 ;; Author: Thomas Schaper <thomas@libremail.nl> and contributors
-;; URL: http://github.com/nonsequitur/smex/
+;; URL: http://github.com/CodeGra.de/CodeGra.el
 ;; Package-Requires: ((emacs "25"))
 ;; Version: 0.1.0
 ;; Keywords: convenience, usability
@@ -68,16 +68,6 @@
                         (kbd (car bind)) (caddr bind)))))
 
 
-(define-derived-mode codegrade-feedback-mode text-mode "CodeGrade Feedback"
-  "Major mode for CodeGrade feedback"
-  :group 'codegrade
-  (visual-line-mode 1)
-  (when (bound-and-true-p global-linum-mode)
-    (linum-mode -1))
-  (when (and (fboundp 'nlinum-mode)
-             (bound-and-true-p global-nlinum-mode))
-    (nlinum-mode -1)))
-
 (defvar codegrade-feedback-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-c") 'codegrade-feedback-close)
@@ -90,6 +80,16 @@
     (define-key map [remap iswitchb-kill-buffer] 'codegrade-feedback-quit)
     (define-key map [remap evil-quit] 'codegrade-feedback-quit)
     map))
+
+(define-derived-mode codegrade-feedback-mode text-mode "CodeGrade Feedback"
+  "Major mode for CodeGrade feedback"
+  :group 'codegrade
+  (visual-line-mode 1)
+  (when (bound-and-true-p global-linum-mode)
+    (linum-mode -1))
+  (when (and (fboundp 'nlinum-mode)
+             (bound-and-true-p global-nlinum-mode))
+    (nlinum-mode -1)))
 
 (defvar codegrade-rubric-buffer nil
   "The rubric buffer that is open at the moment or NIL.")
