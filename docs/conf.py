@@ -18,10 +18,11 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 import os
-import sys
 import subprocess
-import sphinx_fontawesome
+import sys
 from datetime import date
+
+import sphinx_fontawesome
 
 # sys.path.insert(0, os.path.abspath('../'))
 
@@ -43,10 +44,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.doctest',
     'sphinx.ext.githubpages',
-    'sphinxcontrib.httpdomain',
-    'sphinxcontrib.autohttp.flask',
-    'sphinxcontrib.autohttp.flaskqref',
-    'sphinx_autodoc_typehints',
     'sphinx_fontawesome',
 ]
 
@@ -73,8 +70,10 @@ author = 'CodeGrade Team'
 #
 # The short X.Y version.
 
-with open("../VERSION", 'r') as f:
-    version = f.read()
+with open("../codegra.el", 'r') as f:
+    data = f.read()
+    needle = '\n;; Version: '
+    version = data[data.find(needle) + len(needle):].split()[0]
     
 # The full version, including alpha/beta/rc tags.
 release = version

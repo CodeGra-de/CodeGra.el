@@ -11,4 +11,9 @@ commmand) and add  this folder to your ``load-path`` in emacs.
 
 After doing this you can add ``(require 'codegrade)`` to your emacs config.
 
-.. warning:: In addition to the general dependencies for all plugins, the Emacs plugin depends on the `switch-buffer-functions <https://github.com/10sr/switch-buffer-functions-el>`__ package, which can be installed using ``MELPA``.
+.. note::
+
+    In addition to the general dependencies for all plugins, the Emacs plugin
+    depends on the `switch-buffer-functions
+    <https://github.com/10sr/switch-buffer-functions-el>`__ package, which can
+    be installed using ``MELPA``.
