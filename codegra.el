@@ -1,9 +1,9 @@
 ;;; codegra.el --- Give and read feedback on CodeGra.de -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Thomas Schaper and contributors
+;; Copyright (C) 2018 Thomas Schaper and contributors
 ;;
 ;; Author: Thomas Schaper <thomas@libremail.nl> and contributors
-;; URL: http://github.com/nonsequitur/smex/
+;; URL: http://github.com/CodeGra.de/CodeGra.el
 ;; Package-Requires: ((emacs "25"))
 ;; Version: 0.1.0
 ;; Keywords: convenience, usability
