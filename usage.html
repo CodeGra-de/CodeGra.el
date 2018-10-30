@@ -1,0 +1,270 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Using the Emacs Plugin &mdash; CodeGrade Emacs Plugin 0.1.0 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Installation" href="install.html" />
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html">
+          
+
+          
+            
+            <img src="_static/logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">CodeGrade Emacs Plug-in</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using the Emacs Plugin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#editing-rubric">Editing rubric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#line-feedback">Line feedback</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#giving-grades">Giving grades</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="https://fs-docs.codegra.de">Back to Filesystem Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CodeGrade Emacs Plugin</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Using the Emacs Plugin</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="using-the-emacs-plugin">
+<h1>Using the Emacs Plugin<a class="headerlink" href="#using-the-emacs-plugin" title="Permalink to this headline">¶</a></h1>
+<p>After installation, the CodeGrade Emacs plugin can be used. The plugin offers
+two main functions: editing rubrics and giving line feedback.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is important to note that this package does not yet check if the
+file-system if mounted in <code class="docutils literal notranslate"><span class="pre">--fixed</span></code> mode, please make sure it is when
+giving line feedback.</p>
+</div>
+<div class="section" id="editing-rubric">
+<h2>Editing rubric<a class="headerlink" href="#editing-rubric" title="Permalink to this headline">¶</a></h2>
+<p>To edit a rubric you call the <code class="docutils literal notranslate"><span class="pre">codegrade-open-rubric</span></code> function. This opens a
+rubric in a new buffer with the major mode <code class="docutils literal notranslate"><span class="pre">codegrade-rubric-mode</span></code> that you
+can edit. To toggle a rubric item you can call <code class="docutils literal notranslate"><span class="pre">codegrade-toggle-rubric-item</span></code>
+which is bound to <kbd class="kbd docutils literal notranslate">c</kbd> and <kbd class="kbd docutils literal notranslate">,</kbd> by default in the
+<code class="docutils literal notranslate"><span class="pre">codegrade-rubric-mode</span></code>. You can goto the next item with
+<code class="docutils literal notranslate"><span class="pre">codegrade-goto-next-item</span></code> (bound to <kbd class="kbd docutils literal notranslate">n</kbd>) and to the previous item with
+<code class="docutils literal notranslate"><span class="pre">codegrade-goto-previous-item</span></code> (bound to <kbd class="kbd docutils literal notranslate">p</kbd>). To goto next or previous
+headers use the <code class="docutils literal notranslate"><span class="pre">codegrade-goto-*-header</span></code> functions (bound to <kbd class="kbd docutils literal notranslate">N</kbd> and
+<kbd class="kbd docutils literal notranslate">P</kbd> by default).</p>
+<p>To quit this rubric you should use the <code class="docutils literal notranslate"><span class="pre">codegrade-rubric-close</span></code> function,
+bound to <kbd class="kbd docutils literal notranslate">q</kbd>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The opened buffer follows you around. So if you open another submission by
+another user the rubric buffer automatically updates. See the first line of
+this buffer to see which person you are grading.</p>
+</div>
+</div>
+<div class="section" id="line-feedback">
+<h2>Line feedback<a class="headerlink" href="#line-feedback" title="Permalink to this headline">¶</a></h2>
+<p>To edit line feedback you can call the <code class="docutils literal notranslate"><span class="pre">codegrade-add-feedback</span></code> function on a
+line. This opens a new buffer in the <code class="docutils literal notranslate"><span class="pre">codegrade-feedback-mode</span></code> mode. You can
+save the contents in this buffer and quit by calling
+<code class="docutils literal notranslate"><span class="pre">codegrade-feedback-close</span></code> (bound to <kbd class="kbd docutils literal notranslate">C-c C-c</kbd> by default). To quit
+without saving you can call <code class="docutils literal notranslate"><span class="pre">codegrade-feedback-quit</span></code>, bound to <kbd class="kbd docutils literal notranslate">C-c C-k</kbd>
+by default.</p>
+<p>You can also delete a line of feedback by calling <code class="docutils literal notranslate"><span class="pre">codegrade-delete-feedback</span></code>.
+To see the feedback of a line you can call <code class="docutils literal notranslate"><span class="pre">codegrade-get-feedback</span></code>.</p>
+</div>
+<div class="section" id="giving-grades">
+<h2>Giving grades<a class="headerlink" href="#giving-grades" title="Permalink to this headline">¶</a></h2>
+<p>You can also give a grade using this plugin. Simply call
+<code class="docutils literal notranslate"><span class="pre">codegrade-give-grade</span></code> and input a number between 0 and 10.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="install.html" class="btn btn-neutral" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, CodeGrade
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
