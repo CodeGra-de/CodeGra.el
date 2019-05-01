@@ -73,8 +73,8 @@ author = 'CodeGrade Team'
 with open("../codegra.el", 'r') as f:
     data = f.read()
     needle = '\n;; Version: '
-    version = data[data.find(needle) + len(needle):].split()[0]
-    
+    version =  'v' + data[data.find(needle) + len(needle):].split()[0]
+
 # The full version, including alpha/beta/rc tags.
 release = version
 

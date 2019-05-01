@@ -2,12 +2,14 @@ Installation
 =============
 The CodeGrade filesystem has to be installed and both the ``cgfs`` and the
 ``cgapi-consumer`` helper program must be available from the user's ``$PATH`` to
-successfully install and use the CodeGrade editor plugins.
+successfully install and use the CodeGrade editor plugins. This should be
+automatically done when installing the CodeGrade Filesystem with the official
+installer.
 
 After the Filesystem is successfully installed clone
 `this <https://github.com/CodeGra-de/CodeGra.el>`__ repository to a
 local folder (using the ``git clone git@github.com:CodeGra-de/CodeGra.el.git``
-commmand) and add  this folder to your ``load-path`` in emacs.
+command) and add  this folder to your ``load-path`` in emacs.
 
 After doing this you can add ``(require 'codegrade)`` to your emacs config.
 
